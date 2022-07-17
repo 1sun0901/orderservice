@@ -2,6 +2,7 @@ package com.example.orderservice.controller;
 
 import com.example.orderservice.dto.OrderDto;
 import com.example.orderservice.jpa.OrderEntity;
+import com.example.orderservice.messagequeue.KafkaProducer;
 import com.example.orderservice.service.OrderService;
 import com.example.orderservice.vo.RequestOrder;
 import com.example.orderservice.vo.ResponseOrder;
@@ -22,6 +23,7 @@ import java.util.List;
 public class OrderController {
     private final Environment env;
     private final OrderService orderService;
+    private final KafkaProducer kafkaProducer;
 
     @GetMapping("/health_check")
     public String status() {
@@ -37,6 +39,10 @@ public class OrderController {
         OrderDto createOrderDto = orderService.createOrder(orderDto);
 
         ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
+
+        /* send this order to the kafka 카프카 실행 안됨.ㅠㅠ
+         */
+//        kafkaProducer.send("example-catalog-topic", orderDto);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseOrder);
     }
