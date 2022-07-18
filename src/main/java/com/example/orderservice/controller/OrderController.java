@@ -3,6 +3,7 @@ package com.example.orderservice.controller;
 import com.example.orderservice.dto.OrderDto;
 import com.example.orderservice.jpa.OrderEntity;
 import com.example.orderservice.messagequeue.KafkaProducer;
+import com.example.orderservice.messagequeue.OrderProducer;
 import com.example.orderservice.service.OrderService;
 import com.example.orderservice.vo.RequestOrder;
 import com.example.orderservice.vo.ResponseOrder;
@@ -24,6 +25,7 @@ public class OrderController {
     private final Environment env;
     private final OrderService orderService;
     private final KafkaProducer kafkaProducer;
+    private final OrderProducer orderProducer;
 
     @GetMapping("/health_check")
     public String status() {
@@ -36,13 +38,20 @@ public class OrderController {
         mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         OrderDto orderDto = mapper.map(orderDetails, OrderDto.class);
         orderDto.setUserId(userId);
+        /* jpa */
         OrderDto createOrderDto = orderService.createOrder(orderDto);
 
-        ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
+        ResponseOrder responseOrder = mapper.map(createOrderDto, ResponseOrder.class);
 
-        /* send this order to the kafka 카프카 실행 안됨.ㅠㅠ
-         */
+        /* kafka
+        orderDto.setOrderId(UUID.randomUUID().toString());
+        orderDto.setTotalPrice(orderDetails.getQty() * orderDetails.getUnitPrice());
+
+        // send this order to the kafka 카프카 실행 안됨.ㅠㅠ
 //        kafkaProducer.send("example-catalog-topic", orderDto);
+//        orderProducer.send("orders", orderDto);
+        ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
+        */
 
         return ResponseEntity.status(HttpStatus.CREATED).body(responseOrder);
     }
