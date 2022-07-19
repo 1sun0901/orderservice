@@ -8,6 +8,7 @@ import com.example.orderservice.service.OrderService;
 import com.example.orderservice.vo.RequestOrder;
 import com.example.orderservice.vo.ResponseOrder;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.convention.MatchingStrategies;
 import org.springframework.core.env.Environment;
@@ -21,6 +22,7 @@ import java.util.List;
 @RestController
 @RequestMapping("order-service")
 @RequiredArgsConstructor
+@Slf4j
 public class OrderController {
     private final Environment env;
     private final OrderService orderService;
@@ -34,6 +36,7 @@ public class OrderController {
 
     @PostMapping("/{userId}/orders")
     public ResponseEntity<ResponseOrder> createOrder(@PathVariable("userId") String userId, @RequestBody RequestOrder orderDetails) {
+        log.info("Before add orders data");
         ModelMapper mapper = new ModelMapper();
         mapper.getConfiguration().setMatchingStrategy(MatchingStrategies.STRICT);
         OrderDto orderDto = mapper.map(orderDetails, OrderDto.class);
@@ -53,28 +56,33 @@ public class OrderController {
         ResponseOrder responseOrder = mapper.map(orderDto, ResponseOrder.class);
         */
 
+        log.info("After added orders data");
         return ResponseEntity.status(HttpStatus.CREATED).body(responseOrder);
     }
 
     @GetMapping("/{userId}/orders")
     public ResponseEntity<List<ResponseOrder>> getOrder(@PathVariable("userId") String userId) {
 
-        System.out.println("OrderController.getOrder<<<<<<<<<<<<<");
-
+        log.info("Before retrieve orders data");
         Iterable<OrderEntity> orderList = orderService.getOrderByUserId(userId);
 
-        System.out.println("userId<<<<<<<<<<<<<"+userId);
-        System.out.println("orderList<<<<<<<<<<<<<"+orderList);
         orderList.forEach(System.out::println);
-
         ModelMapper mapper = new ModelMapper();
 
         List<ResponseOrder> result = new ArrayList<>();
-
         orderList.forEach(v -> {
             result.add(mapper.map(v,ResponseOrder.class));
         });
 
+//        try {
+//            Thread.sleep(1000);
+//            throw new Exception("장애발생");
+//        } catch (InterruptedException ex) {
+//            log.warn(ex.getMessage());
+//            ex.printStackTrace();
+//        }
+
+        log.info("Add retrieved orders data");
         return ResponseEntity.status(HttpStatus.OK).body(result);
     }
 }
